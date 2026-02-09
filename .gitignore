@@ -1,0 +1,47 @@
+# Node modules
+node_modules/
+
+# Build output
+.next/
+out/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Optional: ignore local database files or caches
+*.sqlite
+.cache/
+
+# Vercel deployment (optional)
+.vercel/
+
+# Typescript cache
+*.tsbuildinfo
+
+# Coverage reports
+coverage/
+
+# Editor directories and files
+.vscode/
+.idea/
+*.swp
+
+# Optional: Mac system file
+.AppleDouble
+.LSOverride
+
+/app/generated/prisma

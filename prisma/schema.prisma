@@ -1,0 +1,283 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String        @id @default(uuid())
+  name              String?
+  email             String?       @unique
+  phoneNumber       String        @unique
+  role              String        @default("user")
+  createdAt         DateTime      @default(now()) @map("created_at")
+  isProfileComplete Boolean       @default(false)
+  cartItems         CartItem[]    @relation("UserCartItems")
+  orders            Order[]
+  payments          Payment[]
+  addresses         UserAddress[]
+  wishlist  Wishlist[]
+}
+
+model UserAddress {
+  id           String  @id @default(uuid())
+  userId       String
+  addressLine1 String  @map("address_line1")
+  addressLine2 String? @map("address_line2")
+  city         String
+  state        String
+  postalCode   String  @map("postal_code")
+  country      String
+  isDefault    Boolean @map("is_default")
+  fullName     String  @map("full_name")
+  phoneNumber  String  @map("phone_number")
+  latitude     Float?
+  longitude    Float?
+  pincode      String?
+  orders       Order[]
+  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_addresses")
+}
+
+model Category {
+  id            String         @id @default(uuid())
+  name          String         @unique
+  subCategories SubCategory[]
+}
+
+model SubCategory {
+  id         String     @id @default(uuid())
+  name       String
+  categoryId String
+  category   Category   @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  products   Product[]
+}
+
+model Product {
+  id                    String          @id @default(uuid())
+  name                  String
+  description           String
+  price                 Decimal
+  stock                 Int
+  imageUrl              String          @map("image_url")
+  isActive              Boolean         @default(true) @map("is_active")
+  createdAt             DateTime        @default(now()) @map("created_at")
+  subCategoryId         String
+  subCategory           SubCategory     @relation(fields: [subCategoryId], references: [id], onDelete: Cascade)
+  manufacturers         String?
+  type                  String?
+  packaging             String?
+  package               String?
+  Qty                   String?         @map("package_qty")
+  productForm           String?         @map("product_form")
+  productHighlights     String?         @map("product_highlights")
+  information           String?
+  keyIngredients        String?         @map("key_ingredients")
+  keyBenefits           String?         @map("key_benefits")
+  directionsForUse      String?         @map("directions_for_use")
+  safetyInformation     String?         @map("safety_information")
+  manufacturerAddress   String?         @map("manufacturer_address")
+  countryOfOrigin       String?         @map("country_of_origin")
+  manufacturerDetails   String?         @map("manufacturer_details")
+  marketerDetails       String?         @map("marketer_details")
+  cartItems             CartItem[]
+  orderItems            OrderItem[]
+  combinations          ProductVariantCombination[]
+  variantTypes          VariantType[]
+  productImages         ProductImage[]
+  wishlist              Wishlist[]
+}
+
+model VariantType {
+  id        String         @id @default(uuid())
+  name      String
+  productId String
+  product   Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+  values    VariantValue[]
+}
+
+model VariantValue {
+  id                String             @id @default(uuid())
+  value             String
+  variantTypeId     String
+  combinationValues CombinationValue[]
+  variantType       VariantType        @relation(fields: [variantTypeId], references: [id], onDelete: Cascade)
+}
+
+model ProductVariantCombination {
+  id         String             @id @default(uuid())
+  productId  String
+  price      Decimal
+  stock      Int
+  imageUrl   String
+  values     CombinationValue[]
+  product    Product            @relation(fields: [productId], references: [id], onDelete: Cascade)
+  orderItems OrderItem[]
+}
+
+model CombinationValue {
+  id             String                    @id @default(uuid())
+  combinationId  String
+  variantValueId String
+  combination    ProductVariantCombination @relation(fields: [combinationId], references: [id], onDelete: Cascade)
+  variantValue   VariantValue              @relation(fields: [variantValueId], references: [id])
+}
+
+model Coupon {
+  id             String    @id @default(uuid())
+  name           String
+  code           String     @unique
+  discount       Int
+  maxUsage       Int  
+  expiryDate     DateTime
+  usedCount      Int        @default(0)
+  createdAt      DateTime   @default(now())
+}
+
+model CartItem {
+  id         String    @id @default(uuid())
+  userId     String
+  productId  String?
+  medicineId String?
+  quantity   Int
+  addedAt    DateTime  @default(now()) @map("added_at")
+  product    Product?  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  medicine   Medicine? @relation(fields: [medicineId], references: [id], onDelete: Cascade)
+  user       User      @relation("UserCartItems", fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Wishlist {
+  id         String   @id @default(uuid())
+  name       String
+  image_url  String
+  productId  String
+  is_active  Boolean  @default(true)
+  createdAt  DateTime @default(now()) @map("created_at")
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+  @@map("Wishlist")
+}
+
+
+model Order {
+  id            String      @id @default(uuid())
+  userId        String
+  addressId     String
+  status        String
+  paymentMethod String
+  totalAmount   Decimal     @map("total_amount")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  address       UserAddress @relation(fields: [addressId], references: [id], onDelete: Cascade)
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orderItems    OrderItem[]
+  payments      Payment[]
+}
+
+model OrderItem {
+  id            String                     @id @default(uuid())
+  orderId       String
+  productId     String?
+  medicineId    String?
+  combinationId String?
+  quantity      Int
+  price         Decimal
+  status        OrderStatus                @default(PENDING)
+  reason        String?
+  order         Order                      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product       Product?                   @relation(fields: [productId], references: [id])
+  medicine      Medicine?                  @relation(fields: [medicineId], references: [id])
+  combination   ProductVariantCombination? @relation(fields: [combinationId], references: [id])
+}
+
+enum OrderStatus {
+  PENDING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  RETURNED
+}
+
+model Payment {
+  id                String   @id @default(cuid())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  orderId           String
+  amount            Float
+  currency          String   @default("INR")
+  status            String
+  provider          String
+  providerPaymentId String?
+  metadata          Json?
+  userId            String
+  order             Order    @relation(fields: [orderId], references: [id])
+  user              User     @relation(fields: [userId], references: [id])
+
+  @@index([orderId])
+  @@index([userId])
+}
+
+model ProductImage {
+  id        String   @id @default(uuid())
+  url       String
+  key       String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String
+  createdAt DateTime @default(now())
+}
+model Medicine {
+  id               String      @id @default(uuid())
+  name             String
+  price            Decimal
+  isDiscontinued   Boolean     @default(false)
+  manufacturerName String
+  type             String
+  packSizeLabel    String
+  composition1     String?
+  composition2     String?
+  quantity         Int         @default(0) 
+  cartItems        CartItem[]
+  orderItems       OrderItem[]
+
+  saltComposition        String?   @map("salt_composition")
+  introduction           String?
+  benefits               String?
+  description            String?
+  howToUse               String?   @map("how_to_use")
+  safetyAdvise           String?   @map("safety_advise")
+  ifMiss                 String?   @map("if_miss")
+  packagingDetail        String?   @map("packaging_detail")
+  package                String?
+  productForm            String?   @map("product_form")
+  prescriptionRequired   String?   @map("prescription_required")
+  factBox                String?   @map("fact_box")
+  primaryUse             String?   @map("primary_use")
+  storage                String?
+  useOf                  String?   @map("use_of")
+  commonSideEffect       String?   @map("common_side_effect")
+  alcoholInteraction     String?
+  pregnancyInteraction   String?
+  lactationInteraction   String?
+  drivingInteraction     String?
+  kidneyInteraction      String?
+  liverInteraction       String?
+  manufacturerAddress    String?   @map("manufacturer_address")
+  countryOfOrigin        String?   @map("country_of_origin")
+  qa                     String?   @map("q_a")
+  howItWorks             String?   @map("how_it_works")
+  interaction            String?
+  manufacturerDetails    String?   @map("manufacturer_details")
+  marketerDetails        String?   @map("marketer_details")
+  expiration             String?
+  reference              String?
+  imageUrl               String?   @map("image_url")
+
+  @@index([id])
+  @@index([name])
+  @@index([manufacturerName])
+  @@index([type])
+}
