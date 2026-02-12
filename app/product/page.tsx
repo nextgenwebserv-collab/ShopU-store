@@ -56,10 +56,39 @@ function ProductPageContent() {
     <>
       <Navroute />
       {loading ? (
-        <div className="flex min-h-[70vh] flex-1 items-center justify-center">
-          <div className="text-center">
-            <Loader className="mx-auto h-8 w-8 animate-spin text-teal-600" />
-            <p className="mt-4 text-gray-600">Loading products...</p>
+        <div className="mx-auto flex max-w-7xl justify-between gap-6 px-4 py-4 md:px-6 lg:px-10">
+          <aside className="hidden w-64 rounded bg-white p-4 shadow-sm sm:block">
+            <div className="mb-4 h-6 w-1/2 animate-pulse rounded bg-gray-200" />
+
+            <div className="mb-6 space-y-3">
+              <div className="h-10 w-full animate-pulse rounded bg-gray-200" />
+              <div className="h-10 w-full animate-pulse rounded bg-gray-200" />
+            </div>
+
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="mb-4 h-4 w-3/4 animate-pulse rounded bg-gray-200" />
+            ))}
+          </aside>
+
+          <div className="grid flex-1 grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[...Array(8)].map((_, index) => (
+              <div key={index} className="rounded-xl bg-white p-3 shadow-sm">
+                {/* Image */}
+                <div className="mb-3 h-40 animate-pulse rounded-lg bg-gray-200" />
+
+                {/* Title */}
+                <div className="mb-2 h-4 w-3/4 animate-pulse rounded bg-gray-200" />
+
+                {/* Sub text */}
+                <div className="mb-2 h-3 w-1/2 animate-pulse rounded bg-gray-200" />
+
+                {/* Price */}
+                <div className="mb-3 h-4 w-1/3 animate-pulse rounded bg-gray-200" />
+
+                {/* Button */}
+                <div className="h-9 w-full animate-pulse rounded-lg bg-gray-200" />
+              </div>
+            ))}
           </div>
         </div>
       ) : products.length === 0 ? (

@@ -31,25 +31,40 @@ const Sidebar = ({ onCategorySelect, onPriceFilter, isOpen = true, onClose }: Si
   const [maxPrice, setMaxPrice] = useState(1000);
   const [selectedSubs, setSelectedSubs] = useState<string[]>([]);
 
+  const CACHE_KEY = 'categories-cache';
+  const CACHE_TIME_KEY = 'categories-cache-time';
+  const CACHE_TTL = 30 * 60 * 1000;
+
   useEffect(() => {
     const fetchCategories = async () => {
-      try {
-        const res = await fetch('/api/products/category');
-        const data: Category[] = await res.json();
+      const cached = localStorage.getItem(CACHE_KEY);
+      const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
 
-        if (categorySlug) {
-          const matchedCategory = data.find(cat => cat.name === categorySlug);
-          if (matchedCategory) {
-            setCategories([matchedCategory]);
-            setOpenCategory(matchedCategory.id);
-          } else {
-            setCategories([]);
-          }
-        } else {
-          setCategories(data);
+      if (cached && cachedTime) {
+        const age = Date.now() - Number(cachedTime);
+
+        if (age < CACHE_TTL) {
+          applyCategory(JSON.parse(cached));
+          return;
         }
-      } catch (error) {
-        console.error('Failed to load categories', error);
+      }
+
+      const res = await fetch('/api/products/category');
+      const data = await res.json();
+
+      localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+      localStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
+
+      applyCategory(data);
+    };
+
+    const applyCategory = (data: Category[]) => {
+      if (categorySlug) {
+        const matched = data.find(cat => cat.name === categorySlug);
+        setCategories(matched ? [matched] : []);
+        setOpenCategory(matched?.id ?? null);
+      } else {
+        setCategories(data);
       }
     };
 
