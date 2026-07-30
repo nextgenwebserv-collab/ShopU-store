@@ -115,7 +115,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
             src={Logo}
             alt="ShopU Logo"
             className="mb-6 h-18 w-auto"
-            width={200}
+            width={150}
             height={112}
           />
           <p className="text-lg text-gray-600">Please login to continue shopping</p>
